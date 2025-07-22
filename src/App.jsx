@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import StoresSection from './components/StoresSection';
@@ -7,7 +7,7 @@ import ProductsSection from './components/ProductsSection';
 import ShoppingList from './components/ShoppingList';
 import Footer from './components/Footer';
 
-// Dummy data for products (you can expand this later)
+// DUMMY_PRODUCTS data (This should be the correct, updated version from our previous steps)
 const DUMMY_PRODUCTS = [
   {
     id: 1,
@@ -59,18 +59,18 @@ const DUMMY_PRODUCTS = [
       { name: 'Checkers', price: 'R21.50' }
     ]
   },
-  { // <--- This opening curly brace is correct here
+  {
     id: 5,
     name: 'Dishwashing Liquid',
     category: 'Cleaning',
     brand: 'SparkleClean',
     size: '750ml',
-    imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Dishwash', // <-- REMOVED THE CLOSING CURLY BRACE HERE
+    imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Dishwash',
     stores: [
       { name: 'Makro', price: 'R42.99' },
       { name: 'Shoprite', price: 'R43.50' }
     ]
-  }, // <--- Correct closing brace for product 5
+  },
   {
     id: 6,
     name: 'Rice',
@@ -166,63 +166,54 @@ const DUMMY_PRODUCTS = [
       { name: 'Pick n Pay', price: 'R55.00' },
       { name: 'Woolworths', price: 'R58.00' }
     ]
-  }, // <-- ADDED THIS COMMA FOR CONSISTENCY (optional, but good practice)
-]; // <-- THIS IS THE MISSING CLOSING BRACKET AND SEMICOLON
+  },
+];
 
 
 function App() {
   const [shoppingListItems, setShoppingListItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS); // New state for filtered products
+  const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
 
-  // Function to filter products based on search term and category
   const applyFilters = () => {
-    let tempProducts = [...DUMMY_PRODUCTS]; // Start with all products
+    let tempProducts = [...DUMMY_PRODUCTS];
 
-    // Filter by category
     if (selectedCategory !== 'All') {
       tempProducts = tempProducts.filter(product => product.category === selectedCategory);
     }
 
-    // Filter by search term
     if (searchTerm) {
       tempProducts = tempProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     setFilteredProducts(tempProducts);
   };
 
-  // Use useEffect to apply filters whenever searchTerm or selectedCategory changes
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, selectedCategory]); // Re-run effect when these dependencies change
+  }, [searchTerm, selectedCategory]);
 
 
   const handleSearchChange = (term) => {
     setSearchTerm(term);
-    // Filtering will happen automatically via useEffect
   };
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    // Filtering will happen automatically via useEffect
   };
 
-  const handleAddToList = (product) => {
+  const handleAddToList = (product, quantity = 1) => { // Ensure quantity is handled from ProductCard
     setShoppingListItems(prevItems => {
       const existingItemIndex = prevItems.findIndex(item => item.product.id === product.id);
 
       if (existingItemIndex > -1) {
-        // If item exists, increase quantity
         const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += 1;
+        updatedItems[existingItemIndex].quantity += quantity; // Add the specified quantity
         return updatedItems;
       } else {
-        // If item doesn't exist, add it
-        return [...prevItems, { product, quantity: 1 }];
+        return [...prevItems, { product, quantity }]; // Use the specified quantity
       }
     });
   };
@@ -235,14 +226,27 @@ function App() {
     setShoppingListItems([]);
   };
 
+  // NEW FUNCTION: To update quantity of an item in the shopping list
+  const handleUpdateQuantity = (productId, change) => {
+    setShoppingListItems(prevItems => {
+      return prevItems.map(item => {
+        if (item.product.id === productId) {
+          const newQuantity = Math.max(1, item.quantity + change); // Ensure quantity doesn't go below 1
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      }).filter(item => item.quantity > 0); // Remove item if quantity drops to 0 after decrement
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header onSearchChange={handleSearchChange} />
-      <Hero onSearchChange={handleSearchChange} /> {/* Pass onSearchChange to Hero as well */}
+      <Hero onSearchChange={handleSearchChange} />
       <main className="flex-grow">
         <StoresSection />
         <ProductsSection
-          products={filteredProducts} // Pass the filtered products
+          products={filteredProducts}
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
           onAddToList={handleAddToList}
@@ -251,6 +255,7 @@ function App() {
           items={shoppingListItems}
           onRemoveItem={handleRemoveItem}
           onClearList={handleClearList}
+          onUpdateQuantity={handleUpdateQuantity}
         />
       </main>
       <Footer />
