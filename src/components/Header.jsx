@@ -1,6 +1,6 @@
 // src/components/Header.jsx
 import React, { useState } from 'react';
-import logo from '../assets/price-compare-logo(trans).png'; // <--- IMPORT YOUR LOGO HERE
+import logo from '../assets/price-compare-logo.png'; // <--- IMPORT YOUR LOGO HERE
 
 function Header({ onSearchChange }) {
   const [localSearchTerm, setLocalSearchTerm] = useState('');
