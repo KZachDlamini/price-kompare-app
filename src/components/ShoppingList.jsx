@@ -1,19 +1,14 @@
 // src/components/ShoppingList.jsx
 import React from 'react';
 
-// Make sure onUpdateQuantity is destructured from props
-function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity }) {
+// Make sure onCompareAllPrices is destructured from props
+function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity, onComparePrices, onCompareAllPrices }) {
   const calculateTotalEstimate = () => {
     if (!Array.isArray(items)) {
       return '0.00';
     }
     // Adjusted calculation to use the first store's price for simplicity in shopping list
     return items.reduce((total, item) => total + (item.product.stores[0] ? parseFloat(item.product.stores[0].price.replace("R", "")) * item.quantity : 0), 0).toFixed(2);
-  };
-
-  const handleComparePrices = (product) => {
-    alert(`Comparing prices for ${product.name}... (Feature to be implemented)`);
-    console.log('Comparing prices for:', product);
   };
 
   return (
@@ -30,7 +25,6 @@ function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity }) {
                   <span className="text-base sm:text-lg text-gray-700 mr-4">
                     {item.product.name}
                   </span>
-                  {/* Quantity Controls - NEW ADDITION */}
                   <div className="flex items-center gap-1 border border-gray-300 rounded-md">
                     <button
                       className="text-gray-600 px-2 py-1 hover:bg-gray-100 transition duration-200"
@@ -51,9 +45,9 @@ function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity }) {
                 <div className="flex items-center gap-3 text-sm sm:text-base">
                   <button
                     className="compare-btn bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 transition duration-200"
-                    onClick={() => handleComparePrices(item.product)}
+                    onClick={() => onComparePrices(item.product)}
                   >
-                    Compare Prices
+                    Compare Prices (Single)
                   </button>
                   <button
                     className="remove-item text-red-500 hover:text-red-700 transition duration-200"
@@ -67,15 +61,25 @@ function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity }) {
           )}
         </ul>
         <div id="total-estimate" className="text-lg sm:text-xl font-bold text-gray-800 mb-4">
-          Total Estimate: R{calculateTotalEstimate()}
+          Estimated Total (current shop): R{calculateTotalEstimate()}
         </div>
-        <button
-          id="clear-list"
-          className="btn-clear bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200 text-sm sm:text-base"
-          onClick={onClearList}
-        >
-          Clear List
-        </button>
+        {/* THIS IS THE NEW/CORRECTED BUTTONS CONTAINER */}
+        <div className="flex justify-between items-center mt-6">
+          <button
+            id="compare-all-list"
+            className="btn-compare-all bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 text-sm sm:text-base"
+            onClick={onCompareAllPrices}
+          >
+            Compare All Prices
+          </button>
+          <button
+            id="clear-list"
+            className="btn-clear bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200 text-sm sm:text-base"
+            onClick={onClearList}
+          >
+            Clear List
+          </button>
+        </div>
       </div>
     </section>
   );

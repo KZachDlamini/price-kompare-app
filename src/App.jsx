@@ -6,6 +6,8 @@ import StoresSection from './components/StoresSection';
 import ProductsSection from './components/ProductsSection';
 import ShoppingList from './components/ShoppingList';
 import Footer from './components/Footer';
+import ComparePricesModal from './components/ComparePricesModal'; // Ensure this is imported
+import TotalComparisonModal from './components/TotalComparisonModal'; // Ensure this is imported
 
 // DUMMY_PRODUCTS data (This should be the correct, updated version from our previous steps)
 const DUMMY_PRODUCTS = [
@@ -176,6 +178,14 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
 
+  // State for single product comparison modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProductForModal, setSelectedProductForModal] = useState(null);
+
+  // State for total shopping list comparison modal
+  const [isTotalCompareModalOpen, setIsTotalCompareModalOpen] = useState(false);
+  const [totalComparisonResults, setTotalComparisonResults] = useState([]);
+
   const applyFilters = () => {
     let tempProducts = [...DUMMY_PRODUCTS];
 
@@ -204,16 +214,16 @@ function App() {
     setSelectedCategory(category);
   };
 
-  const handleAddToList = (product, quantity = 1) => { // Ensure quantity is handled from ProductCard
+  const handleAddToList = (product, quantity = 1) => {
     setShoppingListItems(prevItems => {
       const existingItemIndex = prevItems.findIndex(item => item.product.id === product.id);
 
       if (existingItemIndex > -1) {
         const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity; // Add the specified quantity
+        updatedItems[existingItemIndex].quantity += quantity;
         return updatedItems;
       } else {
-        return [...prevItems, { product, quantity }]; // Use the specified quantity
+        return [...prevItems, { product, quantity }];
       }
     });
   };
@@ -226,18 +236,115 @@ function App() {
     setShoppingListItems([]);
   };
 
-  // NEW FUNCTION: To update quantity of an item in the shopping list
+  // Function to update quantity of an item in the shopping list
   const handleUpdateQuantity = (productId, change) => {
     setShoppingListItems(prevItems => {
       return prevItems.map(item => {
         if (item.product.id === productId) {
-          const newQuantity = Math.max(1, item.quantity + change); // Ensure quantity doesn't go below 1
+          const newQuantity = Math.max(1, item.quantity + change);
           return { ...item, quantity: newQuantity };
         }
         return item;
-      }).filter(item => item.quantity > 0); // Remove item if quantity drops to 0 after decrement
+      }).filter(item => item.quantity > 0);
     });
   };
+
+  // Functions for single product comparison modal
+  const handleOpenCompareModal = (product) => {
+    setSelectedProductForModal(product);
+    setIsModalOpen(true);
+  };
+  const handleCloseCompareModal = () => {
+    setIsModalOpen(false);
+    setSelectedProductForModal(null);
+  };
+
+  // Function to handle total shopping list comparison with "out of stock" logic
+  const handleCompareAllPrices = () => {
+    if (shoppingListItems.length === 0) {
+      alert("Your shopping list is empty! Please add some items to compare.");
+      return;
+    }
+
+    // Get all unique store names from your DUMMY_PRODUCTS
+    const allStoreNames = [...new Set(DUMMY_PRODUCTS.flatMap(p => p.stores.map(s => s.name)))];
+    const comparisonResults = [];
+
+    // Helper function to find the cheapest overall price for a specific product
+    const getCheapestAlternativeForProduct = (productId) => {
+      const product = DUMMY_PRODUCTS.find(p => p.id === productId);
+      if (!product || product.stores.length === 0) {
+        return null; // Product not found or no stores listed
+      }
+      return product.stores.reduce((cheapest, currentStore) => {
+        const currentPrice = parseFloat(currentStore.price.replace("R", ""));
+        const cheapestPrice = cheapest ? parseFloat(cheapest.price.replace("R", "")) : Infinity;
+        return currentPrice < cheapestPrice ? currentStore : cheapest;
+      }, null);
+    };
+
+    // Iterate through each unique store
+    for (const storeName of allStoreNames) {
+      let totalCostForAvailableItems = 0;
+      const itemsBreakdown = []; // To store details for each item (available/out of stock)
+      let hasUnavailableItems = false; // Flag to indicate if this store is missing any items
+
+      // Iterate through each item in the shopping list
+      for (const listItem of shoppingListItems) {
+        const productInList = listItem.product;
+        const requiredQuantity = listItem.quantity;
+
+        // Find the specific store's price for this product
+        const storePriceEntry = productInList.stores.find(s => s.name === storeName);
+
+        if (storePriceEntry) {
+          // Product is available in this store
+          const itemPrice = parseFloat(storePriceEntry.price.replace("R", ""));
+          totalCostForAvailableItems += itemPrice * requiredQuantity;
+          itemsBreakdown.push({
+            id: productInList.id,
+            name: productInList.name,
+            quantity: requiredQuantity,
+            price: storePriceEntry.price,
+            status: 'available',
+          });
+        } else {
+          // Product is NOT available in this store ("Out of Stock")
+          hasUnavailableItems = true;
+          const cheapestAlternative = getCheapestAlternativeForProduct(productInList.id);
+          itemsBreakdown.push({
+            id: productInList.id,
+            name: productInList.name,
+            quantity: requiredQuantity,
+            price: 'Out of Stock', // Explicitly set price as "Out of Stock"
+            status: 'unavailable',
+            alternative: cheapestAlternative // Recommendation for where to find it cheapest
+          });
+        }
+      }
+
+      comparisonResults.push({
+        storeName: storeName,
+        totalCostForAvailableItems: totalCostForAvailableItems, // This is the total for items *available* here
+        hasUnavailableItems: hasUnavailableItems,
+        itemsBreakdown: itemsBreakdown, // Detailed list of each item's status for this store
+      });
+    }
+
+    // Sort results by totalCostForAvailableItems
+    comparisonResults.sort((a, b) => {
+      return a.totalCostForAvailableItems - b.totalCostForAvailableItems;
+    });
+
+    setTotalComparisonResults(comparisonResults);
+    setIsTotalCompareModalOpen(true);
+  };
+
+  const handleCloseTotalCompareModal = () => {
+    setIsTotalCompareModalOpen(false);
+    setTotalComparisonResults([]);
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -256,9 +363,27 @@ function App() {
           onRemoveItem={handleRemoveItem}
           onClearList={handleClearList}
           onUpdateQuantity={handleUpdateQuantity}
+          onComparePrices={handleOpenCompareModal}
+          onCompareAllPrices={handleCompareAllPrices}
         />
       </main>
       <Footer />
+
+      {/* Single product comparison modal */}
+      {isModalOpen && (
+        <ComparePricesModal
+          product={selectedProductForModal}
+          onClose={handleCloseCompareModal}
+        />
+      )}
+
+      {/* Total shopping list comparison modal */}
+      {isTotalCompareModalOpen && (
+        <TotalComparisonModal
+          results={totalComparisonResults}
+          onClose={handleCloseTotalCompareModal}
+        />
+      )}
     </div>
   );
 }
