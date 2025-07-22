@@ -11,7 +11,7 @@ function ShoppingList({ items, onRemoveItem, onClearList }) {
         <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">Your Shopping List</h2> {/* Adjusted text size */}
         <ul id="shopping-list" className="list-none p-0 mb-6">
           {items.length === 0 ? (
-            <p className="text-sm sm:text-base text-gray-600">Your list is empty. Add some products!</p> {/* Adjusted text size */}
+            <p className="text-sm sm:text-base text-gray-600">Your list is empty. Add some products!</p>
           ) : (
             items.map(item => (
               <li key={item.product.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-gray-100 last:border-b-0">
@@ -41,7 +41,7 @@ function ShoppingList({ items, onRemoveItem, onClearList }) {
         </div>
         <button
           id="clear-list"
-          className="btn-clear bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200 text-sm sm:text-base" {/* Adjusted text size */}
+          className="btn-clear bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200 text-sm sm:text-base"
           onClick={onClearList}
         >
           Clear List

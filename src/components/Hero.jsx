@@ -1,19 +1,19 @@
 // src/components/Hero.jsx
-import React, { useState } => { /* ... */ }
+import React, { useState } from 'react'; // <--- CORRECTED LINE
 
 function Hero({ onSearchChange }) {
   const [localSearchTerm, setLocalSearchTerm] = useState('');
 
   const handleInputChange = (e) => {
     setLocalSearchTerm(e.target.value);
-    onSearchChange(e.target.value);
+    onSearchChange(e.target.value); // Communicate search term to App.jsx
   };
 
   return (
     <section className="bg-gradient-to-br from-green-700 to-green-500 text-white py-16 text-center">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 leading-tight">Compare Grocery Prices Instantly</h1> {/* Adjusted text sizes and added leading-tight */}
-        <p className="text-base sm:text-lg md:text-xl mb-8">Save money by finding the best prices near you.</p> {/* Adjusted text sizes */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 leading-tight">Compare Grocery Prices Instantly</h1>
+        <p className="text-base sm:text-lg md:text-xl mb-8">Save money by finding the best prices near you.</p>
         <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
           <input
             type="text"
