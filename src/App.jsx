@@ -1,11 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
-import './index.css'; // Make sure your main CSS is imported
-
-// Import your product data
-import { products as allProductsData } from './data/products';
-
-// Import your component files (we will create these next)
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import Header from './components/Header';
 import Hero from './components/Hero';
 import StoresSection from './components/StoresSection';
@@ -13,95 +7,104 @@ import ProductsSection from './components/ProductsSection';
 import ShoppingList from './components/ShoppingList';
 import Footer from './components/Footer';
 
+// Dummy data for products (you can expand this later)
+const DUMMY_PRODUCTS = [
+  { id: 1, name: 'Milk', price: 28.99, store: 'Pick n Pay', category: 'Dairy', imageUrl: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Milk' },
+  { id: 2, name: 'Bread (White)', price: 15.50, store: 'Checkers', category: 'Bakery', imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Bread' },
+  { id: 3, name: 'Eggs (Dozen)', price: 35.00, store: 'Shoprite', category: 'Eggs', imageUrl: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Eggs' },
+  { id: 4, name: 'Apples (1kg)', price: 22.00, store: 'Woolworths', category: 'Fruits & Veg', imageUrl: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Apples' },
+  { id: 5, name: 'Dishwashing Liquid', price: 42.99, store: 'Makro', category: 'Cleaning', imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Dishwash' },
+  { id: 6, name: 'Rice (5kg)', price: 69.99, store: 'Spar', category: 'Staples', imageUrl: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Rice' },
+  { id: 7, name: 'Yoghurt (175g)', price: 12.00, store: 'Pick n Pay', category: 'Dairy', imageUrl: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Yoghurt' },
+  { id: 8, name: 'Croissant', price: 8.50, store: 'Woolworths', category: 'Bakery', imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Croissant' },
+  { id: 9, name: 'Brown Eggs (Dozen)', price: 37.50, store: 'Checkers', category: 'Eggs', imageUrl: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Brown+Eggs' },
+  { id: 10, name: 'Bananas (1kg)', price: 18.00, store: 'Shoprite', category: 'Fruits & Veg', imageUrl: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Bananas' },
+  { id: 11, name: 'Laundry Detergent', price: 120.00, store: 'Makro', category: 'Cleaning', imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Detergent' },
+  { id: 12, name: 'Pasta (500g)', price: 25.00, store: 'Spar', category: 'Staples', imageUrl: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Pasta' },
+  { id: 13, name: 'Cheddar Cheese (250g)', price: 55.00, store: 'Pick n Pay', category: 'Dairy', imageUrl: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Cheese' },
+];
+
 function App() {
-  // State for search input
-  const [searchTerm, setSearchTerm] = useState('');
-  // State for selected category filter
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  // State for products displayed after filtering
-  const [filteredProducts, setFilteredProducts] = useState(allProductsData);
-  // State for items in the user's shopping list
   const [shoppingListItems, setShoppingListItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS); // New state for filtered products
 
-  // This useEffect hook runs whenever searchTerm or selectedCategory changes.
-  // It re-filters the products based on the current search and category.
+  // Function to filter products based on search term and category
+  const applyFilters = () => {
+    let tempProducts = [...DUMMY_PRODUCTS]; // Start with all products
+
+    // Filter by category
+    if (selectedCategory !== 'All') {
+      tempProducts = tempProducts.filter(product => product.category === selectedCategory);
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+      tempProducts = tempProducts.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(tempProducts);
+  };
+
+  // Use useEffect to apply filters whenever searchTerm or selectedCategory changes
   useEffect(() => {
-    const applyFilters = () => {
-      let tempProducts = allProductsData; // Start with all products
-
-      // Apply search filter
-      if (searchTerm) {
-        tempProducts = tempProducts.filter(p =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.brand.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-
-      // Apply category filter
-      if (selectedCategory !== 'All') {
-        tempProducts = tempProducts.filter(p => p.category === selectedCategory);
-      }
-      setFilteredProducts(tempProducts); // Update the state with filtered products
-    };
-
     applyFilters();
-  }, [searchTerm, selectedCategory]); // Dependencies: re-run when these states change
+  }, [searchTerm, selectedCategory]); // Re-run effect when these dependencies change
 
-  // Function to add a product to the shopping list
-  const addToShoppingList = (product, quantity) => {
+
+  const handleSearchChange = (term) => {
+    setSearchTerm(term);
+    // Filtering will happen automatically via useEffect
+  };
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    // Filtering will happen automatically via useEffect
+  };
+
+  const handleAddToList = (product) => {
     setShoppingListItems(prevItems => {
-      // Check if the product is already in the list
       const existingItemIndex = prevItems.findIndex(item => item.product.id === product.id);
 
       if (existingItemIndex > -1) {
-        // If exists, create a new array with updated quantity for that item
+        // If item exists, increase quantity
         const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + quantity
-        };
+        updatedItems[existingItemIndex].quantity += 1;
         return updatedItems;
       } else {
-        // If new, add it to the list
-        return [...prevItems, { product, quantity }];
+        // If item doesn't exist, add it
+        return [...prevItems, { product, quantity: 1 }];
       }
     });
   };
 
-  // Function to remove a product from the shopping list
-  const removeFromShoppingList = (productId) => {
+  const handleRemoveItem = (productId) => {
     setShoppingListItems(prevItems => prevItems.filter(item => item.product.id !== productId));
   };
 
-  // Function to clear the entire shopping list
-  const clearShoppingList = () => {
+  const handleClearList = () => {
     setShoppingListItems([]);
   };
 
   return (
-    // min-h-screen makes sure the div takes at least the full height of the viewport
-    // flex flex-col makes it a flex container with items arranged vertically,
-    // allowing the main content to grow and push the footer to the bottom.
-    <div className="min-h-screen flex flex-col">
-      {/* Header component will receive a function to update the search term */}
-      <Header onSearchChange={setSearchTerm} />
-      {/* Hero component will also receive a function to update the search term */}
-      <Hero onSearchChange={setSearchTerm} />
-      {/* main flex-grow allows this section to take up available space, pushing footer down */}
+    <div className="flex flex-col min-h-screen">
+      <Header onSearchChange={handleSearchChange} />
+      <Hero onSearchChange={handleSearchChange} /> {/* Pass onSearchChange to Hero as well */}
       <main className="flex-grow">
         <StoresSection />
-        {/* ProductsSection receives products, current category, and functions to change them or add to list */}
         <ProductsSection
-          products={filteredProducts}
+          products={filteredProducts} // Pass the filtered products
           selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          onAddToList={addToShoppingList}
+          onCategoryChange={handleCategoryChange}
+          onAddToList={handleAddToList}
         />
-        {/* ShoppingList receives the items, and functions to remove/clear them */}
         <ShoppingList
           items={shoppingListItems}
-          onRemoveItem={removeFromShoppingList}
-          onClearList={clearShoppingList}
+          onRemoveItem={handleRemoveItem}
+          onClearList={handleClearList}
         />
       </main>
       <Footer />
