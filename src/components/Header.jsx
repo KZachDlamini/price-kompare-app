@@ -12,7 +12,7 @@ function Header({ onSearchChange }) {
 
   return (
     <header className="bg-green-700 py-4 shadow-md">
-      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between px-4">
+      <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between px-4">
         {/* Replace the text with your logo */}
         <div className="flex items-center mb-2 sm:mb-0"> {/* Added flex and items-center for alignment */}
           <img src={logo} alt="Price Kompare Logo" className="h-20 mr-2" /> {/* Adjust h-20 and mr-2 as needed */}
@@ -27,7 +27,7 @@ function Header({ onSearchChange }) {
           value={localSearchTerm}
           onChange={handleInputChange}
         />
-        <nav className="mt-3 sm:mt-0 flex flex-wrap justify-center">
+        <nav className="mt-3 sm:mt-0 flex flex-wrap justify-start">
           <a href="#" className="mx-2 text-white font-medium hover:text-green-200 transition duration-200 text-sm sm:text-base">Deals</a>
           <a href="#" className="mx-2 text-white font-medium hover:text-green-200 transition duration-200 text-sm sm:text-base">Stores</a>
           <a href="#" className="mx-2 text-white font-medium hover:text-green-200 transition duration-200 text-sm sm:text-base">Categories</a>
