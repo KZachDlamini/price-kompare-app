@@ -18,7 +18,7 @@ function ShoppingList({ items, onRemoveItem, onClearList }) {
       <div className="container mx-auto px-4">
         <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">Your Shopping List</h2>
         <ul id="shopping-list" className="list-none p-0 mb-6">
-          {items && items.length === 0 ? ( {/* <-- ADDED 'items &&' here for safety */}
+          {items && items.length === 0 ? (
             <p className="text-sm sm:text-base text-gray-600">Your list is empty. Add some products!</p>
           ) : (
             // ADD THIS CHECK: Render only if items is an array
