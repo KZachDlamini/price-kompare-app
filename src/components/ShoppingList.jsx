@@ -44,7 +44,7 @@ function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity, onCo
 
                 <div className="flex items-center gap-3 text-sm sm:text-base">
                   <button
-                    className="compare-btn bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 transition duration-200"
+                    className="compare-btn bg-blue-900 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-200"
                     onClick={() => onComparePrices(item.product)}
                   >
                     Compare Prices (Single)

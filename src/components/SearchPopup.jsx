@@ -95,7 +95,7 @@ function SearchPopup({ isOpen, onClose, products, onAddToList }) {
           />
           <button
             onClick={handleConfirmAdd}
-            className="px-2 py-1 bg-orange-500 text-white rounded-md hover:bg-orange-700 transition duration-200 text-sm" // <--- Changed to orange-500
+            className="px-2 py-1 bg-blue-900 text-white rounded-md hover:bg-orange-700 transition duration-200 text-sm" // <--- Changed to blue-900
           >
             Add
           </button>
@@ -111,7 +111,7 @@ function SearchPopup({ isOpen, onClose, products, onAddToList }) {
       return (
         <button
           onClick={() => handleAddButtonClick(product)}
-          className="ml-2 w-8 h-8 flex items-center justify-center bg-orange-500 text-white text-xl font-bold rounded-full hover:bg-orange-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500" // <--- Changed to orange-500
+          className="ml-2 w-8 h-8 flex items-center justify-center bg-blue-900 text-white text-xl font-bold rounded-full hover:bg-orange-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900" // <--- Changed to blue-900
           aria-label={`Add ${product.name} to list`}
         >
           +
@@ -171,7 +171,7 @@ function SearchPopup({ isOpen, onClose, products, onAddToList }) {
                           <p className="text-sm text-gray-500">{deal.brand || deal.store}</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                           {deal.price && <span className="font-bold text-orange-500">{deal.price}</span>}
+                           {deal.price && <span className="font-bold text-blue-900">{deal.price}</span>}
                            {renderAddControl(deal)}
                         </div>
                       </li>

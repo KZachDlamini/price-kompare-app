@@ -37,9 +37,9 @@ function Header({ onSearchChange, onOpenSearchPopup }) { // <--- FIXED: onOpenSe
         {/* Navigation links with updated branding colors */}
         <nav className="mt-3 sm:mt-0 flex flex-wrap justify-start">
 
-          <a href="#" className="mx-2 text-orange-500 font-bold hover:text-orange-600 hover:bg-orange-100 hover:rounded-md transition duration-200 text-sm sm:text-base px-2 py-1">Deals</a>
-          <a href="#" className="mx-2 text-orange-500 font-bold hover:text-orange-600 hover:bg-orange-100 hover:rounded-md transition duration-200 text-sm sm:text-base px-2 py-1">Stores</a>
-          <a href="#" className="mx-2 text-orange-500 font-bold hover:text-orange-600 hover:bg-orange-100 hover:rounded-md transition duration-200 text-sm sm:text-base px-2 py-1">Categories</a>
+          <a href="#" className="mx-2 text-blue-900 font-bold hover:text-blue-700 hover:bg-orange-100 hover:rounded-md transition duration-200 text-sm sm:text-base px-2 py-1">Deals</a>
+          <a href="#" className="mx-2 text-blue-900 font-bold hover:text-blue-700 hover:bg-orange-100 hover:rounded-md transition duration-200 text-sm sm:text-base px-2 py-1">Stores</a>
+          <a href="#" className="mx-2 text-blue-900 font-bold hover:text-blue-700 hover:bg-orange-100 hover:rounded-md transition duration-200 text-sm sm:text-base px-2 py-1">Categories</a>
         </nav>
       </div>
     </header>

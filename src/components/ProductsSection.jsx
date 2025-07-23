@@ -38,7 +38,7 @@ function ProductsSection({ products, selectedCategory, onCategoryChange, onAddTo
             <button
               key={category}
               className={`py-2 px-4 border border-gray-300 rounded-md font-medium transition duration-200 whitespace-nowrap
-                ${selectedCategory === category ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                ${selectedCategory === category ? 'bg-blue-900 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               onClick={() => onCategoryChange(category)}
             >
               {category}

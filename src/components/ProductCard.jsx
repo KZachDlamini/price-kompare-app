@@ -25,7 +25,7 @@ function ProductCard({ product, onAddToList }) {
     // h-full ensures it takes the full height available from its parent (the carousel item wrapper)
     <div className="product-card border border-gray-200 p-4 rounded-lg bg-white shadow-sm flex flex-col h-full min-h-[350px] justify-between transform transition duration-300 hover:shadow-md hover:-translate-y-1">
       {/* Category Tag */}
-      <span className="category text-xs font-semibold bg-orange-500 text-white py-1 px-2 rounded-md inline-block mb-2">
+      <span className="category text-xs font-semibold bg-blue-900 text-white py-1 px-2 rounded-md inline-block mb-2">
         {product.category}
       </span>
       {/* Product Name (added line-clamp for consistency) */}
@@ -43,7 +43,7 @@ function ProductCard({ product, onAddToList }) {
       <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar mb-3">
         <ul className="list-disc list-inside text-sm text-gray-700">
           {product.stores.map((s, index) => (
-            <li key={index} className={s.name === cheapestStore.name ? 'font-bold text-orange-600' : ''}>
+            <li key={index} className={s.name === cheapestStore.name ? 'font-bold text-blue-700' : ''}>
               {s.name}: <strong>{s.price}</strong>
             </li>
           ))}
@@ -54,21 +54,21 @@ function ProductCard({ product, onAddToList }) {
       <div className="mt-auto"> {/* This div ensures these elements stick to the bottom */}
         <div className="quantity-selector flex items-center justify-center gap-2 mb-3">
           <button
-            className="qty-btn bg-orange-500 text-white font-bold py-1 px-3 rounded-md hover:bg-orange-600 transition duration-200"
+            className="qty-btn bg-blue-900 text-white font-bold py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200"
             onClick={() => handleQuantityChange(-1)}
           >
             −
           </button>
           <span className="text-lg font-medium w-6 text-center">{quantity}</span>
           <button
-            className="qty-btn bg-orange-500 text-white font-bold py-1 px-3 rounded-md hover:bg-orange-600 transition duration-200"
+            className="qty-btn bg-blue-900 text-white font-bold py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200"
             onClick={() => handleQuantityChange(1)}
           >
             +
           </button>
         </div>
         <button
-          className="add-btn w-full py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition duration-300"
+          className="add-btn w-full py-2 bg-blue-900 text-white rounded-md font-medium hover:bg-blue-700 transition duration-300"
           onClick={handleAddClick}
         >
           Add to List
