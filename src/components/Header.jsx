@@ -16,7 +16,6 @@ function Header({ onSearchChange }) {
         {/* Replace the text with your logo */}
         <div className="flex items-center mb-2 sm:mb-0"> {/* Added flex and items-center for alignment */}
           <img src={logo} alt="Price Kompare Logo" className="h-20 mr-2" /> {/* Adjust h-20 and mr-2 as needed */}
-          <span className="text-2xl font-semibold text-white hidden sm:block">Price Kompare</span> {/* Optionally keep text for larger screens, or remove */}
         </div>
 
         <input

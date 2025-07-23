@@ -6,8 +6,8 @@ import StoresSection from './components/StoresSection';
 import ProductsSection from './components/ProductsSection';
 import ShoppingList from './components/ShoppingList';
 import Footer from './components/Footer';
-import ComparePricesModal from './components/ComparePricesModal'; // Ensure this is imported
-import TotalComparisonModal from './components/TotalComparisonModal'; // Ensure this is imported
+import ComparePricesModal from './components/ComparePricesModal';
+import TotalComparisonModal from './components/TotalComparisonModal';
 
 // DUMMY_PRODUCTS data (This should be the correct, updated version from our previous steps)
 const DUMMY_PRODUCTS = [
@@ -173,9 +173,14 @@ const DUMMY_PRODUCTS = [
 
 
 function App() {
-  const [shoppingListItems, setShoppingListItems] = useState([]);
+  const [shoppingListItems, setShoppingListItems] = useState(() => {
+    // Initialize from localStorage for persistence
+    const savedList = localStorage.getItem('shoppingList');
+    return savedList ? JSON.parse(savedList) : [];
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  // Initialize filteredProducts with DUMMY_PRODUCTS initially
   const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
 
   // State for single product comparison modal
@@ -186,8 +191,14 @@ function App() {
   const [isTotalCompareModalOpen, setIsTotalCompareModalOpen] = useState(false);
   const [totalComparisonResults, setTotalComparisonResults] = useState([]);
 
-  const applyFilters = () => {
-    let tempProducts = [...DUMMY_PRODUCTS];
+  // Persist shopping list to localStorage
+  useEffect(() => {
+    localStorage.setItem('shoppingList', JSON.stringify(shoppingListItems));
+  }, [shoppingListItems]);
+
+  // Apply filters when search term or category changes
+  useEffect(() => {
+    let tempProducts = [...DUMMY_PRODUCTS]; // Always filter from the original DUMMY_PRODUCTS
 
     if (selectedCategory !== 'All') {
       tempProducts = tempProducts.filter(product => product.category === selectedCategory);
@@ -195,14 +206,11 @@ function App() {
 
     if (searchTerm) {
       tempProducts = tempProducts.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.brand.toLowerCase().includes(searchTerm.toLowerCase()) // Also search by brand
       );
     }
     setFilteredProducts(tempProducts);
-  };
-
-  useEffect(() => {
-    applyFilters();
   }, [searchTerm, selectedCategory]);
 
 
@@ -236,7 +244,6 @@ function App() {
     setShoppingListItems([]);
   };
 
-  // Function to update quantity of an item in the shopping list
   const handleUpdateQuantity = (productId, change) => {
     setShoppingListItems(prevItems => {
       return prevItems.map(item => {
@@ -245,7 +252,7 @@ function App() {
           return { ...item, quantity: newQuantity };
         }
         return item;
-      }).filter(item => item.quantity > 0);
+      }).filter(item => item.quantity > 0); // Filter out items if quantity drops to 0 or less
     });
   };
 
@@ -263,6 +270,9 @@ function App() {
   const handleCompareAllPrices = () => {
     if (shoppingListItems.length === 0) {
       alert("Your shopping list is empty! Please add some items to compare.");
+      // We still open the modal, but with an empty results array, so it shows the "empty list" message.
+      setTotalComparisonResults([]);
+      setIsTotalCompareModalOpen(true);
       return;
     }
 
@@ -273,8 +283,8 @@ function App() {
     // Helper function to find the cheapest overall price for a specific product
     const getCheapestAlternativeForProduct = (productId) => {
       const product = DUMMY_PRODUCTS.find(p => p.id === productId);
-      if (!product || product.stores.length === 0) {
-        return null; // Product not found or no stores listed
+      if (!product || !product.stores || product.stores.length === 0) {
+        return null; // Product not found or no stores listed for it
       }
       return product.stores.reduce((cheapest, currentStore) => {
         const currentPrice = parseFloat(currentStore.price.replace("R", ""));
@@ -283,60 +293,93 @@ function App() {
       }, null);
     };
 
-    // Iterate through each unique store
-    for (const storeName of allStoreNames) {
-      let totalCostForAvailableItems = 0;
-      const itemsBreakdown = []; // To store details for each item (available/out of stock)
-      let hasUnavailableItems = false; // Flag to indicate if this store is missing any items
+    // Initialize store totals with all store names, setting initial total cost to 0
+    const storeTotalsMap = new Map();
+    allStoreNames.forEach(storeName => {
+        storeTotalsMap.set(storeName, {
+            storeName: storeName,
+            totalCostForAvailableItems: 0,
+            itemsBreakdown: [],
+            hasUnavailableItems: false,
+        });
+    });
 
-      // Iterate through each item in the shopping list
-      for (const listItem of shoppingListItems) {
-        const productInList = listItem.product;
-        const requiredQuantity = listItem.quantity;
+    // Iterate through each item in the shopping list
+    for (const listItem of shoppingListItems) {
+      const requiredProductId = listItem.product.id;
+      const requiredQuantity = listItem.quantity;
 
-        // Find the specific store's price for this product
-        const storePriceEntry = productInList.stores.find(s => s.name === storeName);
+      // Crucial: Find the FULL product data from DUMMY_PRODUCTS
+      const fullProductData = DUMMY_PRODUCTS.find(p => p.id === requiredProductId);
+
+      if (!fullProductData) {
+          console.warn(`Product with ID ${requiredProductId} not found in DUMMY_PRODUCTS. Skipping.`);
+          continue; // Skip this item if its master data isn't found
+      }
+
+      for (const storeName of allStoreNames) {
+        // Get the current store's data from the map
+        const currentStoreResult = storeTotalsMap.get(storeName);
+
+        // Find the price for this product in the current store from the FULL product data
+        const storePriceEntry = fullProductData.stores.find(s => s.name === storeName);
 
         if (storePriceEntry) {
           // Product is available in this store
           const itemPrice = parseFloat(storePriceEntry.price.replace("R", ""));
-          totalCostForAvailableItems += itemPrice * requiredQuantity;
-          itemsBreakdown.push({
-            id: productInList.id,
-            name: productInList.name,
-            quantity: requiredQuantity,
-            price: storePriceEntry.price,
-            status: 'available',
-          });
+          if (!isNaN(itemPrice)) {
+            currentStoreResult.totalCostForAvailableItems += itemPrice * requiredQuantity;
+            currentStoreResult.itemsBreakdown.push({
+              id: requiredProductId,
+              name: fullProductData.name, // Use full product name
+              quantity: requiredQuantity,
+              price: storePriceEntry.price,
+              status: 'available',
+            });
+          } else {
+            console.warn(`Invalid price format for product ${fullProductData.name} at ${storeName}: ${storePriceEntry.price}`);
+            currentStoreResult.hasUnavailableItems = true;
+            currentStoreResult.itemsBreakdown.push({
+                id: requiredProductId,
+                name: fullProductData.name,
+                quantity: requiredQuantity,
+                status: 'unavailable',
+                price: 'Invalid Price',
+                alternative: null
+            });
+          }
         } else {
           // Product is NOT available in this store ("Out of Stock")
-          hasUnavailableItems = true;
-          const cheapestAlternative = getCheapestAlternativeForProduct(productInList.id);
-          itemsBreakdown.push({
-            id: productInList.id,
-            name: productInList.name,
+          currentStoreResult.hasUnavailableItems = true;
+          const cheapestAlternative = getCheapestAlternativeForProduct(requiredProductId);
+          currentStoreResult.itemsBreakdown.push({
+            id: requiredProductId,
+            name: fullProductData.name, // Use full product name
             quantity: requiredQuantity,
             price: 'Out of Stock', // Explicitly set price as "Out of Stock"
             status: 'unavailable',
-            alternative: cheapestAlternative // Recommendation for where to find it cheapest
+            alternative: cheapestAlternative ? {
+                name: cheapestAlternative.name,
+                price: `R${(parseFloat(cheapestAlternative.price.replace('R','')) * requiredQuantity).toFixed(2)}`
+            } : null,
           });
         }
       }
-
-      comparisonResults.push({
-        storeName: storeName,
-        totalCostForAvailableItems: totalCostForAvailableItems, // This is the total for items *available* here
-        hasUnavailableItems: hasUnavailableItems,
-        itemsBreakdown: itemsBreakdown, // Detailed list of each item's status for this store
-      });
     }
 
-    // Sort results by totalCostForAvailableItems
-    comparisonResults.sort((a, b) => {
-      return a.totalCostForAvailableItems - b.totalCostForAvailableItems;
+    // Convert map values to an array for sorting
+    const finalComparisonResults = Array.from(storeTotalsMap.values());
+
+    // Sort results by totalCostForAvailableItems, prioritizing complete lists
+    finalComparisonResults.sort((a, b) => {
+        // If one has unavailable items and the other doesn't, prioritize the one without.
+        if (!a.hasUnavailableItems && b.hasUnavailableItems) return -1;
+        if (a.hasUnavailableItems && !b.hasUnavailableItems) return 1;
+        // If both have or don't have unavailable items, sort by total cost.
+        return a.totalCostForAvailableItems - b.totalCostForAvailableItems;
     });
 
-    setTotalComparisonResults(comparisonResults);
+    setTotalComparisonResults(finalComparisonResults);
     setIsTotalCompareModalOpen(true);
   };
 

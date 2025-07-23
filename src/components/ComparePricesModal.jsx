@@ -1,9 +1,11 @@
 // src/components/ComparePricesModal.jsx
 import React from 'react';
+import ReactDOM from 'react-dom'; // Import ReactDOM for portals
 
 function ComparePricesModal({ product, onClose }) {
+  // Don't render if no product is provided
   if (!product) {
-    return null; // Don't render if no product is provided
+    return null;
   }
 
   // Determine the cheapest store for highlighting
@@ -13,8 +15,16 @@ function ComparePricesModal({ product, onClose }) {
     return price < currentMinPrice ? s : min;
   }, product.stores[0] || { name: '', price: 'R0.00' }); // Fallback for safety
 
-  return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+  // Get the modal root element
+  const modalRoot = document.getElementById('modal-root');
+  if (!modalRoot) {
+    console.error("Modal root element not found! Ensure there's a <div id='modal-root'> in your index.html.");
+    return null;
+  }
+
+  // Use ReactDOM.createPortal to render the modal content into the modal-root div
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative animate-fade-in-up">
         {/* Close Button */}
         <button
@@ -64,7 +74,8 @@ function ComparePricesModal({ product, onClose }) {
           </p>
         )}
       </div>
-    </div>
+    </div>,
+    modalRoot // Render into modalRoot
   );
 }
 
