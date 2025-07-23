@@ -67,7 +67,7 @@ function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity, onCo
         <div className="flex justify-between items-center mt-6">
           <button
             id="compare-all-list"
-            className="btn-compare-all bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 text-sm sm:text-base"
+            className="btn-compare-all bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 text-sm sm:text-base"
             onClick={onCompareAllPrices}
           >
             Compare All Prices
