@@ -8,6 +8,8 @@ import ShoppingList from './components/ShoppingList';
 import Footer from './components/Footer';
 import ComparePricesModal from './components/ComparePricesModal';
 import TotalComparisonModal from './components/TotalComparisonModal';
+import SearchPopup from './components/SearchPopup';
+import NotificationPopup from './components/NotificationPopup'; // <--- NEW IMPORT
 
 // DUMMY_PRODUCTS data (This should be the correct, updated version from our previous steps)
 const DUMMY_PRODUCTS = [
@@ -21,7 +23,7 @@ const DUMMY_PRODUCTS = [
     stores: [
       { name: 'Pick n Pay', price: 'R28.99' },
       { name: 'Checkers', price: 'R29.50' },
-      { name: 'Spar', price: 'R27.80' }
+      { name: 'Spar', 'price': 'R27.80' }
     ]
   },
   {
@@ -174,31 +176,31 @@ const DUMMY_PRODUCTS = [
 
 function App() {
   const [shoppingListItems, setShoppingListItems] = useState(() => {
-    // Initialize from localStorage for persistence
     const savedList = localStorage.getItem('shoppingList');
     return savedList ? JSON.parse(savedList) : [];
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  // Initialize filteredProducts with DUMMY_PRODUCTS initially
   const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
 
-  // State for single product comparison modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProductForModal, setSelectedProductForModal] = useState(null);
 
-  // State for total shopping list comparison modal
   const [isTotalCompareModalOpen, setIsTotalCompareModalOpen] = useState(false);
   const [totalComparisonResults, setTotalComparisonResults] = useState([]);
 
-  // Persist shopping list to localStorage
+  // State for search popup
+  const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
+
+  // <--- NEW STATE FOR NOTIFICATION POPUP --->
+  const [notification, setNotification] = useState(null); // { message: '...', id: uniqueId }
+
   useEffect(() => {
     localStorage.setItem('shoppingList', JSON.stringify(shoppingListItems));
   }, [shoppingListItems]);
 
-  // Apply filters when search term or category changes
   useEffect(() => {
-    let tempProducts = [...DUMMY_PRODUCTS]; // Always filter from the original DUMMY_PRODUCTS
+    let tempProducts = [...DUMMY_PRODUCTS];
 
     if (selectedCategory !== 'All') {
       tempProducts = tempProducts.filter(product => product.category === selectedCategory);
@@ -207,12 +209,11 @@ function App() {
     if (searchTerm) {
       tempProducts = tempProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase()) // Also search by brand
+        product.brand.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     setFilteredProducts(tempProducts);
   }, [searchTerm, selectedCategory]);
-
 
   const handleSearchChange = (term) => {
     setSearchTerm(term);
@@ -234,6 +235,8 @@ function App() {
         return [...prevItems, { product, quantity }];
       }
     });
+    // <--- Trigger the notification here --->
+    showNotification(`${product.name} added to your shopping list!`);
   };
 
   const handleRemoveItem = (productId) => {
@@ -252,11 +255,10 @@ function App() {
           return { ...item, quantity: newQuantity };
         }
         return item;
-      }).filter(item => item.quantity > 0); // Filter out items if quantity drops to 0 or less
+      }).filter(item => item.quantity > 0);
     });
   };
 
-  // Functions for single product comparison modal
   const handleOpenCompareModal = (product) => {
     setSelectedProductForModal(product);
     setIsModalOpen(true);
@@ -266,25 +268,21 @@ function App() {
     setSelectedProductForModal(null);
   };
 
-  // Function to handle total shopping list comparison with "out of stock" logic
   const handleCompareAllPrices = () => {
     if (shoppingListItems.length === 0) {
       alert("Your shopping list is empty! Please add some items to compare.");
-      // We still open the modal, but with an empty results array, so it shows the "empty list" message.
       setTotalComparisonResults([]);
       setIsTotalCompareModalOpen(true);
       return;
     }
 
-    // Get all unique store names from your DUMMY_PRODUCTS
     const allStoreNames = [...new Set(DUMMY_PRODUCTS.flatMap(p => p.stores.map(s => s.name)))];
     const comparisonResults = [];
 
-    // Helper function to find the cheapest overall price for a specific product
     const getCheapestAlternativeForProduct = (productId) => {
       const product = DUMMY_PRODUCTS.find(p => p.id === productId);
       if (!product || !product.stores || product.stores.length === 0) {
-        return null; // Product not found or no stores listed for it
+        return null;
       }
       return product.stores.reduce((cheapest, currentStore) => {
         const currentPrice = parseFloat(currentStore.price.replace("R", ""));
@@ -293,45 +291,39 @@ function App() {
       }, null);
     };
 
-    // Initialize store totals with all store names, setting initial total cost to 0
     const storeTotalsMap = new Map();
     allStoreNames.forEach(storeName => {
-        storeTotalsMap.set(storeName, {
-            storeName: storeName,
-            totalCostForAvailableItems: 0,
-            itemsBreakdown: [],
-            hasUnavailableItems: false,
-        });
+      storeTotalsMap.set(storeName, {
+        storeName: storeName,
+        totalCostForAvailableItems: 0,
+        itemsBreakdown: [],
+        hasUnavailableItems: false,
+      });
     });
 
-    // Iterate through each item in the shopping list
     for (const listItem of shoppingListItems) {
       const requiredProductId = listItem.product.id;
       const requiredQuantity = listItem.quantity;
 
-      // Crucial: Find the FULL product data from DUMMY_PRODUCTS
       const fullProductData = DUMMY_PRODUCTS.find(p => p.id === requiredProductId);
 
       if (!fullProductData) {
-          console.warn(`Product with ID ${requiredProductId} not found in DUMMY_PRODUCTS. Skipping.`);
-          continue; // Skip this item if its master data isn't found
+        console.warn(`Product with ID ${requiredProductId} not found in DUMMY_PRODUCTS. Skipping.`);
+        continue;
       }
 
       for (const storeName of allStoreNames) {
-        // Get the current store's data from the map
         const currentStoreResult = storeTotalsMap.get(storeName);
 
-        // Find the price for this product in the current store from the FULL product data
         const storePriceEntry = fullProductData.stores.find(s => s.name === storeName);
 
         if (storePriceEntry) {
-          // Product is available in this store
           const itemPrice = parseFloat(storePriceEntry.price.replace("R", ""));
           if (!isNaN(itemPrice)) {
             currentStoreResult.totalCostForAvailableItems += itemPrice * requiredQuantity;
             currentStoreResult.itemsBreakdown.push({
               id: requiredProductId,
-              name: fullProductData.name, // Use full product name
+              name: fullProductData.name,
               quantity: requiredQuantity,
               price: storePriceEntry.price,
               status: 'available',
@@ -340,43 +332,38 @@ function App() {
             console.warn(`Invalid price format for product ${fullProductData.name} at ${storeName}: ${storePriceEntry.price}`);
             currentStoreResult.hasUnavailableItems = true;
             currentStoreResult.itemsBreakdown.push({
-                id: requiredProductId,
-                name: fullProductData.name,
-                quantity: requiredQuantity,
-                status: 'unavailable',
-                price: 'Invalid Price',
-                alternative: null
+              id: requiredProductId,
+              name: fullProductData.name,
+              quantity: requiredQuantity,
+              status: 'unavailable',
+              price: 'Invalid Price',
+              alternative: null
             });
           }
         } else {
-          // Product is NOT available in this store ("Out of Stock")
           currentStoreResult.hasUnavailableItems = true;
           const cheapestAlternative = getCheapestAlternativeForProduct(requiredProductId);
           currentStoreResult.itemsBreakdown.push({
             id: requiredProductId,
-            name: fullProductData.name, // Use full product name
+            name: fullProductData.name,
             quantity: requiredQuantity,
-            price: 'Out of Stock', // Explicitly set price as "Out of Stock"
+            price: 'Out of Stock',
             status: 'unavailable',
             alternative: cheapestAlternative ? {
-                name: cheapestAlternative.name,
-                price: `R${(parseFloat(cheapestAlternative.price.replace('R','')) * requiredQuantity).toFixed(2)}`
+              name: cheapestAlternative.name,
+              price: `R${(parseFloat(cheapestAlternative.price.replace('R', '')) * requiredQuantity).toFixed(2)}`
             } : null,
           });
         }
       }
     }
 
-    // Convert map values to an array for sorting
     const finalComparisonResults = Array.from(storeTotalsMap.values());
 
-    // Sort results by totalCostForAvailableItems, prioritizing complete lists
     finalComparisonResults.sort((a, b) => {
-        // If one has unavailable items and the other doesn't, prioritize the one without.
-        if (!a.hasUnavailableItems && b.hasUnavailableItems) return -1;
-        if (a.hasUnavailableItems && !b.hasUnavailableItems) return 1;
-        // If both have or don't have unavailable items, sort by total cost.
-        return a.totalCostForAvailableItems - b.totalCostForAvailableItems;
+      if (!a.hasUnavailableItems && b.hasUnavailableItems) return -1;
+      if (a.hasUnavailableItems && !b.hasUnavailableItems) return 1;
+      return a.totalCostForAvailableItems - b.totalCostForAvailableItems;
     });
 
     setTotalComparisonResults(finalComparisonResults);
@@ -388,10 +375,32 @@ function App() {
     setTotalComparisonResults([]);
   };
 
+  // Functions for search popup
+  const handleOpenSearchPopup = () => {
+    setIsSearchPopupOpen(true);
+  };
+
+  const handleCloseSearchPopup = () => {
+    setIsSearchPopupOpen(false);
+  };
+
+  // <--- NEW: Function to show notification --->
+  const showNotification = (message) => {
+    // Generate a unique ID to ensure re-render even if message is the same
+    setNotification({ message, id: Date.now() });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(null);
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header onSearchChange={handleSearchChange} />
+      <Header
+        onSearchChange={handleSearchChange}
+        onOpenSearchPopup={handleOpenSearchPopup}
+      />
       <Hero onSearchChange={handleSearchChange} />
       <main className="flex-grow">
         <StoresSection />
@@ -427,6 +436,24 @@ function App() {
           onClose={handleCloseTotalCompareModal}
         />
       )}
+
+      {/* Search Popup Component */}
+      <SearchPopup
+        isOpen={isSearchPopupOpen}
+        onClose={handleCloseSearchPopup}
+        products={DUMMY_PRODUCTS}
+        onAddToList={handleAddToList}
+      />
+
+      {/* <--- NEW: Notification Popup Component ---> */}
+      {notification && (
+        <NotificationPopup
+          key={notification.id} // Important for re-rendering on new message
+          message={notification.message}
+          onClose={handleCloseNotification}
+        />
+      )}
+      {/* <--- END NEW: Notification Popup Component ---> */}
     </div>
   );
 }
