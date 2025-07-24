@@ -262,6 +262,7 @@ function App() {
   const handleOpenCompareModal = (product) => {
     setSelectedProductForModal(product);
     setIsModalOpen(true);
+    console.log('handleOpenCompareModal triggered for:', product.name);
   };
   const handleCloseCompareModal = () => {
     setIsModalOpen(false);
@@ -409,6 +410,7 @@ function App() {
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
           onAddToList={handleAddToList}
+          onOpenCompareModal={handleOpenCompareModal}
         />
         <ShoppingList
           items={shoppingListItems}

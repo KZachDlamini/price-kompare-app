@@ -1,34 +1,32 @@
 // src/components/ProductsSection.jsx
-import React, { useRef } from 'react'; // Import useRef
-import ProductCard from './ProductCard'; // Ensure ProductCard is imported
+import React, { useRef } from 'react';
+import ProductCard from './ProductCard';
 
-function ProductsSection({ products, selectedCategory, onCategoryChange, onAddToList }) {
-  // Use the categories array as defined in your provided code
+// Make sure onOpenCompareModal is destructured from props
+function ProductsSection({ products, selectedCategory, onCategoryChange, onAddToList, onOpenCompareModal }) { // <--- ADD onOpenCompareModal PROP
   const categories = ["All", "Dairy", "Bakery", "Eggs", "Fruits & Veg", "Cleaning", "Staples"];
-  const scrollContainerRef = useRef(null); // Create a ref for the scrollable product container
+  const scrollContainerRef = useRef(null);
 
-  // Function to scroll carousel left
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
-        left: -scrollContainerRef.current.offsetWidth * 0.8, // Scroll by 80% of container width
+        left: -scrollContainerRef.current.offsetWidth * 0.8,
         behavior: 'smooth'
       });
     }
   };
 
-  // Function to scroll carousel right
   const scrollRight = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
-        left: scrollContainerRef.current.offsetWidth * 0.8, // Scroll by 80% of container width
+        left: scrollContainerRef.current.offsetWidth * 0.8,
         behavior: 'smooth'
       });
     }
   };
 
   return (
-    <section className="products py-10 bg-gray-50 relative"> {/* Added relative for button positioning */}
+    <section className="products py-10 bg-gray-50 relative">
       <div className="container mx-auto px-4">
         <h2 className="text-center text-2xl sm:text-3xl font-semibold text-gray-800 mb-8">Popular Deals</h2>
 
@@ -62,7 +60,7 @@ function ProductsSection({ products, selectedCategory, onCategoryChange, onAddTo
         </div>
 
         {/* Product Carousel Container */}
-        <div className="relative"> {/* Outer relative container for navigation buttons */}
+        <div className="relative">
           {/* Navigation Buttons (Hidden on mobile, flex on md and up) */}
           <button
             onClick={scrollLeft}
@@ -80,32 +78,33 @@ function ProductsSection({ products, selectedCategory, onCategoryChange, onAddTo
           </button>
 
           <div
-            ref={scrollContainerRef} // Attach the ref here
+            ref={scrollContainerRef}
             className="flex overflow-x-auto snap-x snap-mandatory pb-4 hide-scrollbar
-                       space-x-4 px-2" // space-x-4 for gap, px-2 for padding at ends
+                         space-x-4 px-2"
           >
             {products.length === 0 ? (
               <p className="flex-shrink-0 w-full text-center text-base sm:text-lg text-gray-600 py-10">No products found for your selection.</p>
             ) : (
               products.map(product => (
                 <div key={product.id} className="flex-shrink-0 snap-start w-80 sm:w-96 md:w-80 lg:w-72 xl:w-64">
-                  <ProductCard product={product} onAddToList={onAddToList} />
+                  {/* Pass onOpenCompareModal to ProductCard */}
+                  <ProductCard product={product} onAddToList={onAddToList} onOpenCompareModal={onOpenCompareModal} /> {/* <--- PASS PROP HERE */}
                 </div>
               ))
             )}
           </div>
         </div>
+        {/* Custom CSS to hide scrollbar (optional but improves aesthetics) */}
+        <style jsx>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+        `}</style>
       </div>
-      {/* Custom CSS to hide scrollbar (optional but improves aesthetics) */}
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-        }
-      `}</style>
     </section>
   );
 }

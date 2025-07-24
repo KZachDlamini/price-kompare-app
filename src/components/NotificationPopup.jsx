@@ -33,7 +33,7 @@ function NotificationPopup({ message, duration = 3000, onClose }) {
       className={`fixed top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[10000] transition-all duration-500 ease-out
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'}`}
     >
-      <p className="font-semibold text-lg">{message}</p>
+      <p className="font-regular text-sm">{message}</p>
     </div>,
     document.getElementById('modal-root')
   );

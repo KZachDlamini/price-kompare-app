@@ -1,7 +1,8 @@
 // src/components/ProductCard.jsx
 import React, { useState } from 'react';
 
-function ProductCard({ product, onAddToList }) {
+// Make sure onOpenCompareModal is destructured from props
+function ProductCard({ product, onAddToList, onOpenCompareModal }) { // <--- ADD onOpenCompareModal PROP
   const [quantity, setQuantity] = useState(1);
 
   const cheapestStore = product.stores.reduce((min, s) => {
@@ -19,11 +20,20 @@ function ProductCard({ product, onAddToList }) {
     setQuantity(1);
   };
 
+  // <--- NEW: Handler for clicking the product card --->
+  const handleCardClick = () => {
+    console.log('Product card clicked:', product.name);
+    onOpenCompareModal(product);
+  };
+
   return (
-    // Outer container: Set it to be a flex column, full height, and a minimum height
-    // min-h-[350px] is a good starting point, adjust as needed.
-    // h-full ensures it takes the full height available from its parent (the carousel item wrapper)
-    <div className="product-card border border-gray-200 p-4 rounded-lg bg-white shadow-sm flex flex-col h-full min-h-[350px] justify-between transform transition duration-300 hover:shadow-md hover:-translate-y-1">
+    // Outer container: Make it clickable, and ensure internal buttons don't trigger it
+    // Added cursor-pointer for visual cue
+    <div
+      className="product-card border border-gray-200 p-4 rounded-lg bg-white shadow-sm flex flex-col h-full min-h-[350px] justify-between transform transition duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer" // <--- ADD cursor-pointer
+      onClick={handleCardClick} // <--- ADD onClick HANDLER
+    >
+      {/* Ensure click handlers on internal elements stop propagation if they do different actions */}
       {/* Category Tag */}
       <span className="category text-xs font-semibold bg-blue-900 text-white py-1 px-2 rounded-md inline-block mb-2">
         {product.category}
@@ -39,7 +49,6 @@ function ProductCard({ product, onAddToList }) {
       </p>
 
       {/* Store List - Use flex-grow and overflow to manage variable content */}
-      {/* flex-grow pushes remaining content down. overflow-y-auto adds scrollbar if list is too long. */}
       <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar mb-3">
         <ul className="list-disc list-inside text-sm text-gray-700">
           {product.stores.map((s, index) => (
@@ -50,32 +59,32 @@ function ProductCard({ product, onAddToList }) {
         </ul>
       </div>
 
-      {/* Quantity Selector and Add to List Button - Pushed to the bottom using mt-auto on its container */}
-      <div className="mt-auto"> {/* This div ensures these elements stick to the bottom */}
+      {/* Quantity Selector and Add to List Button - Pushed to the bottom */}
+      <div className="mt-auto">
         <div className="quantity-selector flex items-center justify-center gap-2 mb-3">
           <button
             className="qty-btn bg-blue-900 text-white font-bold py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200"
-            onClick={() => handleQuantityChange(-1)}
+            onClick={(e) => { e.stopPropagation(); handleQuantityChange(-1); }} // <--- ADD e.stopPropagation()
           >
             −
           </button>
           <span className="text-lg font-medium w-6 text-center">{quantity}</span>
           <button
             className="qty-btn bg-blue-900 text-white font-bold py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200"
-            onClick={() => handleQuantityChange(1)}
+            onClick={(e) => { e.stopPropagation(); handleQuantityChange(1); }} // <--- ADD e.stopPropagation()
           >
             +
           </button>
         </div>
         <button
           className="add-btn w-full py-2 bg-blue-900 text-white rounded-md font-medium hover:bg-blue-700 transition duration-300"
-          onClick={handleAddClick}
+          onClick={(e) => { e.stopPropagation(); handleAddClick(); }} // <--- ADD e.stopPropagation()
         >
           Add to List
         </button>
       </div>
 
-      {/* Custom CSS for scrollbar if overflow occurs (same as before) */}
+      {/* Custom CSS for scrollbar if overflow occurs */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

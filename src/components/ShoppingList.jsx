@@ -60,9 +60,6 @@ function ShoppingList({ items, onRemoveItem, onClearList, onUpdateQuantity, onCo
             ))
           )}
         </ul>
-        <div id="total-estimate" className="text-lg sm:text-xl font-bold text-gray-800 mb-4">
-          Estimated Total (current shop): R{calculateTotalEstimate()}
-        </div>
         {/* THIS IS THE NEW/CORRECTED BUTTONS CONTAINER */}
         <div className="flex justify-between items-center mt-6">
           <button
